@@ -1,5 +1,9 @@
 using Test, LinearMaps
 
+include("indexmap.jl")
+
+include("block_diag.jl")
+
 include("linearmaps.jl")
 
 include("transpose.jl")

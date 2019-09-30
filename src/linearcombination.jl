@@ -114,7 +114,7 @@ function LinearAlgebra.mul!(y::AbstractVector, A::LinearCombination{T,As}, x::Ab
     length(y) == size(A, 1) || throw(DimensionMismatch("mul!"))
     if isone(α)
         iszero(β) && (A_mul_B!(y, A, x); return y)
-        !isone(β) && rmul!(y, β)
+        !isone(β) && rmul!(y, β) # todo: this seems incorrect, cf LinearMaps.jl
     elseif iszero(α)
         iszero(β) && (fill!(y, zero(eltype(y))); return y)
         isone(β) && return y
@@ -127,7 +127,7 @@ function LinearAlgebra.mul!(y::AbstractVector, A::LinearCombination{T,As}, x::Ab
             rmul!(y, α)
             return y
         elseif !isone(β)
-            rmul!(y, β)
+            rmul!(y, β) # todo: also seems incorrect, missing A * x ?
         end # β-cases
     end # α-cases
 

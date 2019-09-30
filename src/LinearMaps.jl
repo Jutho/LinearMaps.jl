@@ -119,6 +119,7 @@ include("linearcombination.jl") # defining linear combinations of linear maps
 include("composition.jl") # composition of linear maps
 include("functionmap.jl") # using a function as linear map
 include("blockmap.jl") # block linear maps
+include("indexmap.jl") # single block map defined by row/col index
 
 """
     LinearMap(A; kwargs...)
