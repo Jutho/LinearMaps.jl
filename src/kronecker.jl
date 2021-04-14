@@ -97,7 +97,7 @@ Construct a lazy representation of the `k`-th Kronecker power
 ⊗(A, B, Cs...) = kron(convert_to_lmaps(A, B, Cs...)...)
 
 Base.:(^)(A::MapOrMatrix, ::KronPower{p}) where {p} =
-    kron(ntuple(n -> convert_to_lmaps_(A), Val(p))...)
+    kron(ntuple(n -> convert_to_lmap_(A), Val(p))...)
 
 Base.size(A::KroneckerMap) = map(*, size.(A.maps)...)
 
@@ -282,7 +282,7 @@ where `A` can be a square `AbstractMatrix` or a `LinearMap`.
 ⊕(a, b, c...) = kronsum(a, b, c...)
 
 Base.:(^)(A::MapOrMatrix, ::KronSumPower{p}) where {p} =
-    kronsum(ntuple(n->convert_to_lmaps_(A), Val(p))...)
+    kronsum(ntuple(n->convert_to_lmap_(A), Val(p))...)
 
 Base.size(A::KroneckerSumMap, i) = prod(size.(A.maps, i))
 Base.size(A::KroneckerSumMap) = (size(A, 1), size(A, 2))

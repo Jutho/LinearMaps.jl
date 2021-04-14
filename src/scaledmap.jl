@@ -40,6 +40,10 @@ Base.:(*)(A::ScaledMap, α::Number) = A.lmap * (A.λ * α)
 Base.:(*)(α::RealOrComplex, A::ScaledMap) = (α * A.λ) * A.lmap
 Base.:(*)(A::ScaledMap, α::RealOrComplex) = (A.λ * α) * A.lmap
 Base.:(-)(A::LinearMap) = -1 * A
+Base.:(*)(J::UniformScalingMap, B::ScaledMap) =
+    size(B, 1) == J.M ? J.λ * B : throw(DimensionMismatch("*"))
+Base.:(*)(A::ScaledMap, J::UniformScalingMap) =
+    size(A, 2) == J.M ? A * J.λ : throw(DimensionMismatch("*"))
 
 # composition (not essential, but might save multiple scaling operations)
 Base.:(*)(A::ScaledMap, B::ScaledMap) = (A.λ * B.λ) * (A.lmap * B.lmap)

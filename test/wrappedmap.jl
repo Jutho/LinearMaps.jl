@@ -10,7 +10,7 @@ using Test, LinearMaps, LinearAlgebra
     @test occursin("10×20 LinearMaps.WrappedMap{Float64}", sprint((t, s) -> show(t, "text/plain", s), L))
     MA = @inferred LinearMap(SA)
     MB = @inferred LinearMap(SB)
-    @test eltype(Matrix{Complex{Float32}}(LinearMap(A))) <: Complex
+    @test eltype(Matrix{Complex{Float32}}(LinearMap(A))) == ComplexF32
     @test size(L) == size(A)
     @test @inferred !issymmetric(L)
     @test @inferred issymmetric(MA)

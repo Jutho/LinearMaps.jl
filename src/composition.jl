@@ -119,6 +119,10 @@ end
 # needed for disambiguation
 Base.:(*)(A₁::ScaledMap, A₂::CompositeMap) = A₁.λ * (A₁.lmap * A₂)
 Base.:(*)(A₁::CompositeMap, A₂::ScaledMap) = (A₁ * A₂.lmap) * A₂.λ
+Base.:(*)(J::UniformScalingMap, B::CompositeMap) =
+    size(B, 1) == J.M ? J.λ * B : throw(DimensionMismatch("*"))
+Base.:(*)(A::CompositeMap, J::UniformScalingMap) =
+    size(A, 2) == J.M ? A * J.λ : throw(DimensionMismatch("*"))
 
 # special transposition behavior
 LinearAlgebra.transpose(A::CompositeMap{T}) where {T} =

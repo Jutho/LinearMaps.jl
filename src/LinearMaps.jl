@@ -69,12 +69,12 @@ function check_dim_mul(C, A, B)
 end
 
 # conversion of AbstractVecOrMat to LinearMap
-convert_to_lmaps_(A::AbstractVecOrMat) = LinearMap(A)
-convert_to_lmaps_(A::LinearMap) = A
+convert_to_lmap_(A::AbstractVecOrMat) = LinearMap(A)
+convert_to_lmap_(A::LinearMap) = A
 convert_to_lmaps() = ()
-convert_to_lmaps(A) = (convert_to_lmaps_(A),)
+convert_to_lmaps(A) = (convert_to_lmap_(A),)
 @inline convert_to_lmaps(A, B, Cs...) =
-    (convert_to_lmaps_(A), convert_to_lmaps_(B), convert_to_lmaps(Cs...)...)
+    (convert_to_lmap_(A), convert_to_lmap_(B), convert_to_lmaps(Cs...)...)
 
 # The (internal) multiplication logic is as follows:
 #  - `*(A, x)` calls `mul!(y, A, x)` for appropriately-sized y
@@ -256,6 +256,7 @@ include("functionmap.jl") # using a function as linear map
 include("blockmap.jl") # block linear maps
 include("kronecker.jl") # Kronecker product of linear maps
 include("fillmap.jl") # linear maps representing constantly filled matrices
+include("indexablemap.jl") # indexable linear maps
 include("conversion.jl") # conversion of linear maps to matrices
 include("show.jl") # show methods for LinearMap objects
 
@@ -293,7 +294,9 @@ For the function-based constructor, there is one more keyword argument:
     The default value is guessed by looking at the number of arguments of the first
     occurrence of `f` in the method table.
 """
-LinearMap(A::MapOrVecOrMat; kwargs...) = WrappedMap(A; kwargs...)
+LinearMap(A::MapOrVecOrMat; getind=nothing, kwargs...) = _LinearMap(getind, A; kwargs...)
+_LinearMap(::Nothing, A; kwargs...) = WrappedMap(A; kwargs...)
+_LinearMap(getind, A; kwargs...) = IndexableMap(WrappedMap(A; kwargs...), getind)
 LinearMap(J::UniformScaling, M::Int) = UniformScalingMap(J.λ, M)
 LinearMap(f, M::Int; kwargs...) = LinearMap{Float64}(f, M; kwargs...)
 LinearMap(f, M::Int, N::Int; kwargs...) = LinearMap{Float64}(f, M, N; kwargs...)

@@ -34,3 +34,5 @@ include("conversion.jl")
 include("left.jl")
 
 include("fillmap.jl")
+
+include("indexablemap.jl")

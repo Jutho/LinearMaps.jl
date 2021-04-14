@@ -6,12 +6,16 @@ struct UniformScalingMap{T} <: LinearMap{T}
         return new{typeof(λ)}(λ, M)
     end
 end
-UniformScalingMap(λ::Number, M::Int, N::Int) =
-    (M == N ?
-        UniformScalingMap(λ, M) : error("UniformScalingMap needs to be square"))
-UniformScalingMap(λ::T, sz::Dims{2}) where {T} =
-    (sz[1] == sz[2] ?
-        UniformScalingMap(λ, sz[1]) : error("UniformScalingMap needs to be square"))
+@deprecate UniformScalingMap(λ::Number, M::Int, N::Int) UniformScalingMap(λ, M) false
+@deprecate UniformScalingMap(λ::Number, sz::Dims{2}) UniformScalingMap(λ, sz[1]) false
+# the following methods are misleading: they introduce the opportunity to pass 2 dims,
+# but throw if the dims are unequal!
+# UniformScalingMap(λ::Number, M::Int, N::Int) =
+#     (M == N ?
+#         UniformScalingMap(λ, M) : error("UniformScalingMap needs to be square"))
+# UniformScalingMap(λ::T, sz::Dims{2}) where {T} =
+#     (sz[1] == sz[2] ?
+#         UniformScalingMap(λ, sz[1]) : error("UniformScalingMap needs to be square"))
 
 MulStyle(::UniformScalingMap) = FiveArg()
 
@@ -27,25 +31,32 @@ Base.:(==)(A::UniformScalingMap, B::UniformScalingMap) = (A.λ == B.λ && A.M ==
 
 # special transposition behavior
 LinearAlgebra.transpose(A::UniformScalingMap) = A
-LinearAlgebra.adjoint(A::UniformScalingMap)   = UniformScalingMap(conj(A.λ), size(A))
+LinearAlgebra.adjoint(A::UniformScalingMap)   = UniformScalingMap(conj(A.λ), A.M)
 
 # multiplication with scalar
 Base.:(*)(A::UniformScaling, B::LinearMap) = A.λ * B
 Base.:(*)(A::LinearMap, B::UniformScaling) = A * B.λ
-Base.:(*)(α::Number, J::UniformScalingMap) = UniformScalingMap(α * J.λ, size(J))
-Base.:(*)(J::UniformScalingMap, α::Number) = UniformScalingMap(J.λ * α, size(J))
+Base.:(*)(α::Number, J::UniformScalingMap) = UniformScalingMap(α * J.λ, J.M)
+Base.:(*)(J::UniformScalingMap, α::Number) = UniformScalingMap(J.λ * α, J.M)
 # needed for disambiguation
-Base.:(*)(α::RealOrComplex, J::UniformScalingMap) = UniformScalingMap(α * J.λ, size(J))
-Base.:(*)(J::UniformScalingMap, α::RealOrComplex) = UniformScalingMap(J.λ * α, size(J))
+Base.:(*)(α::RealOrComplex, J::UniformScalingMap) = UniformScalingMap(α * J.λ, J.M)
+Base.:(*)(J::UniformScalingMap, α::RealOrComplex) = UniformScalingMap(J.λ * α, J.M)
 
 # multiplication with vector
 Base.:(*)(J::UniformScalingMap, x::AbstractVector) =
     length(x) == J.M ? J.λ * x : throw(DimensionMismatch("*"))
-# multiplication with matrix
+# multiplication with map/matrix
+Base.:(*)(J::UniformScalingMap, B::LinearMap) =
+    size(B, 1) == J.M ? J.λ * B : throw(DimensionMismatch("*"))
 Base.:(*)(J::UniformScalingMap, B::AbstractMatrix) =
-    size(B, 1) == J.M ? J.λ * LinearMap(B) : throw(DimensionMismatch("*"))
-Base.:(*)(A::AbstractMatrix, J::UniformScalingMap) =
-    size(A, 2) == J.M ? LinearMap(A) * J.λ : throw(DimensionMismatch("*"))
+    size(B, 1) == J.M ? J.λ * convert_to_lmap_(B) : throw(DimensionMismatch("*"))
+Base.:(*)(A::LinearMap, J::UniformScalingMap) =
+    size(A, 2) == J.M ? A * J.λ : throw(DimensionMismatch("*"))
+Base.:(*)(A::VecOrMat, J::UniformScalingMap) =
+    size(A, 2) == J.M ? convert_to_lmap_(A) * J.λ : throw(DimensionMismatch("*"))
+Base.:(*)(U::UniformScalingMap, J::UniformScalingMap) =
+    U.M == J.M ? UniformScalingMap(U.λ*J.λ, J.M) : throw(DimensionMismatch("*"))
+
 # disambiguation
 Base.:(*)(xc::LinearAlgebra.AdjointAbsVec, J::UniformScalingMap) = xc * J.λ
 Base.:(*)(xt::LinearAlgebra.TransposeAbsVec, J::UniformScalingMap) = xt * J.λ
